@@ -19,7 +19,7 @@ class ProcesoDeAusencia implements ShouldQueue
     {
         Log::info("Iniciando Job de Marcado de Ausencias...");
 
-        $absenceThresholdHours = config('attendance.absence_threshold_hours', 4); // Configurable
+        $absenceThresholdHours = config('attendance.absence_threshold_hours', 4); // Configurable para considerar ausente después de X horas
         $processed = 0;
         $errors = 0;
 
