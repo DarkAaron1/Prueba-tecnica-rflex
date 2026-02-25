@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
 class Company extends Model
 {
+    use HasRelationships;
     protected $fillable = ['holding_id', 'name', 'rut'];
 
     public function holding()
@@ -31,11 +33,13 @@ class Company extends Model
      * Obtener todos los trabajadores de la empresa.
      * Fundamental para el reporte de remuneraciones global.
      */
-    public function employees(): HasManyThrough
+    public function employees()
     {
-        // Company -> Branch -> Area -> Employee
-        // Nota: Laravel soporta relaciones "Deep" o puedes usar el paquete 'staudenmeir/eloquent-has-many-deep'
-        // Por ahora, lo manejaremos a través de Area.
-        return $this->hasManyThrough(Employee::class, Area::class, 'branch_id', 'area_id');
+        return $this->hasManyDeep(
+            Employee::class,
+            [Branch::class, Area::class],
+            ['company_id', 'branch_id', 'area_id'], // Claves foráneas en orden
+            ['id', 'id', 'id'] // Claves locales en orden
+        );
     }
 }
