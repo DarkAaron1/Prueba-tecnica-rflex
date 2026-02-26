@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\Shift;
 use App\Models\AttendanceMark;
 use Carbon\Carbon;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
@@ -15,47 +16,37 @@ class DashboardController extends Controller
      * Obtener resumen general para el dashboard.
      * GET /api/v1/admin/resumen
      */
-    public function getSummary(Request $request)
+    public function index()
     {
         $today = Carbon::today();
 
-        // Total empleados activos
-        $totalEmployees = Employee::count();
+        $summary = [
+            'total_employees' => Employee::count(),
+            'shifts_today' => Shift::whereDate('scheduled_in', $today)->count(),
+            'present_today' => Shift::whereDate('scheduled_in', $today)->where('status', 'present')->count(),
+            'absent_today' => Shift::whereDate('scheduled_in', $today)->where('status', 'absent')->count(),
+            'late_today' => Shift::whereDate('scheduled_in', $today)->where('status', 'late')->count(),
+            'marks_today' => AttendanceMark::whereDate('timestamp', $today)->count(),
+            'active_devices' => \App\Models\Device::where('last_sync_at', '>', now()->subMinutes(5))->count(),
+        ];
 
-        // Turnos de hoy
-        $todayShifts = Shift::whereDate('scheduled_in', $today)->count();
+        $latestMarks = AttendanceMark::with('device') // Traemos el nombre del dispositivo
+            ->orderBy('timestamp', 'desc')
+            ->take(10) // Solo las últimas 10
+            ->get()
+            ->map(function ($mark) {
+                return [
+                    'id' => $mark->id,
+                    'rut' => $mark->employee_rut,
+                    'tipo' => $mark->type === 'in' ? 'Entrada' : 'Salida',
+                    'hora' => Carbon::parse($mark->timestamp)->format('H:i:s'),
+                    'dispositivo' => $mark->device->name ?? 'N/A',
+                ];
+            });
 
-        // Turnos presentes hoy
-        $presentToday = Shift::whereDate('scheduled_in', $today)
-            ->where('status', 'present')
-            ->count();
-
-        // Ausencias hoy
-        $absentToday = Shift::whereDate('scheduled_in', $today)
-            ->where('status', 'absent')
-            ->count();
-
-        // Atrasos hoy
-        $lateToday = Shift::whereDate('scheduled_in', $today)
-            ->where('status', 'late')
-            ->count();
-
-        // Marcas registradas hoy
-        $marksToday = AttendanceMark::whereDate('timestamp', $today)->count();
-
-        // Dispositivos activos (última sync < 5 min)
-        $activeDevices = \App\Models\Device::where('last_sync_at', '>', now()->subMinutes(5))->count();
-
-        return response()->json([
-            'summary' => [
-                'total_employees' => $totalEmployees,
-                'shifts_today' => $todayShifts,
-                'present_today' => $presentToday,
-                'absent_today' => $absentToday,
-                'late_today' => $lateToday,
-                'marks_today' => $marksToday,
-                'active_devices' => $activeDevices,
-            ],
+        return Inertia::render('Dashboard', [
+            'summary' => $summary,
+            'latestMarks' => $latestMarks, // <--- Nueva prop
             'date' => $today->toDateString(),
         ]);
     }
