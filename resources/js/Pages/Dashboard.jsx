@@ -1,13 +1,13 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
-import { 
-    Users, Clock, AlertTriangle, Cpu, 
-    ArrowRightLeft, Calendar, CheckCircle2, 
-    XCircle, ShieldCheck, UserCircle 
+import {
+    Users, Clock, AlertTriangle, Cpu,
+    ArrowRightLeft, Calendar, CheckCircle2,
+    XCircle, ShieldCheck, UserCircle
 } from 'lucide-react';
 
 export default function Dashboard({ auth, summary, date, latestMarks, userRole }) {
-    
+
     const canManage = ['admin', 'manager'].includes(userRole);
 
     return (
@@ -30,34 +30,38 @@ export default function Dashboard({ auth, summary, date, latestMarks, userRole }
 
             <div className="py-12 bg-gray-50/50 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    
+
                     {/* GRILLA DE KPIs */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <StatCard 
-                            title={userRole === 'manager' ? "Mi Equipo" : "Total Empleados"}
-                            value={summary.total_employees} 
-                            icon={<Users size={22} />} 
-                            color="bg-blue-600" 
-                        />
-                        <StatCard 
-                            title="Presentes Hoy" 
-                            value={summary.present_today} 
-                            icon={<CheckCircle2 size={22} />} 
-                            color="bg-emerald-500" 
+                        {userRole != "employee" ? (
+                            <StatCard
+                                title={userRole === 'manager' ? "Mi Equipo" : "Total Empleados"}
+                                value={summary.total_employees}
+                                icon={<Users size={22} />}
+                                color="bg-blue-600"
+                            />
+                        ) : null}
+                        <StatCard
+                            title="Presentes Hoy"
+                            value={summary.present_today}
+                            icon={<CheckCircle2 size={22} />}
+                            color="bg-emerald-500"
                             trend={`${summary.shifts_today} programados`}
                         />
-                        <StatCard 
-                            title="Atrasos" 
-                            value={summary.late_today} 
-                            icon={<AlertTriangle size={22} />} 
-                            color="bg-amber-500" 
+                        <StatCard
+                            title="Atrasos"
+                            value={summary.late_today}
+                            icon={<AlertTriangle size={22} />}
+                            color="bg-amber-500"
                         />
-                        <StatCard 
-                            title="Relojes Activos" 
-                            value={summary.active_devices} 
-                            icon={<Cpu size={22} />} 
-                            color="bg-indigo-600" 
-                        />
+                        {userRole !== 'employee' ? (
+                            <StatCard
+                                title="Relojes Activos"
+                                value={summary.active_devices}
+                                icon={<Cpu size={22} />}
+                                color="bg-indigo-600"
+                            />
+                        ) : null}
                     </div>
 
                     {/* TABLA DE ÚLTIMOS MOVIMIENTOS */}
@@ -86,9 +90,8 @@ export default function Dashboard({ auth, summary, date, latestMarks, userRole }
                                             <tr key={mark.id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{mark.rut}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                                                        mark.tipo === 'Entrada' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                                                    }`}>
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${mark.tipo === 'Entrada' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                                        }`}>
                                                         {mark.tipo}
                                                     </span>
                                                 </td>
@@ -105,7 +108,7 @@ export default function Dashboard({ auth, summary, date, latestMarks, userRole }
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={5} className="px-6 py-12 text-center text-gray-400 italic">No hay marcas registradas.</td>
+                                            <td colSpan={canManage ? 5 : 4} className="px-6 py-12 text-center text-gray-400 italic">No hay marcas registradas.</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -136,9 +139,9 @@ function StatCard({ title, value, icon, color, trend }) {
 
 function RoleBadge({ role }) {
     const config = {
-        admin: { color: 'bg-purple-100 text-purple-700 border-purple-200', icon: <ShieldCheck className="w-3.5 h-3.5 mr-1"/>, label: 'Admin' },
-        manager: { color: 'bg-blue-100 text-blue-700 border-blue-200', icon: <Users className="w-3.5 h-3.5 mr-1"/>, label: 'Jefe Área' },
-        employee: { color: 'bg-gray-100 text-gray-600 border-gray-200', icon: <UserCircle className="w-3.5 h-3.5 mr-1"/>, label: 'Personal' }
+        admin: { color: 'bg-purple-100 text-purple-700 border-purple-200', icon: <ShieldCheck className="w-3.5 h-3.5 mr-1" />, label: 'Admin' },
+        manager: { color: 'bg-blue-100 text-blue-700 border-blue-200', icon: <Users className="w-3.5 h-3.5 mr-1" />, label: 'Jefe Área' },
+        employee: { color: 'bg-gray-100 text-gray-600 border-gray-200', icon: <UserCircle className="w-3.5 h-3.5 mr-1" />, label: 'Personal' }
     };
     const { color, icon, label } = config[role] || config.employee;
     return (
