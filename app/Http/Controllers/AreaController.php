@@ -20,14 +20,32 @@ class AreaController extends Controller
     }
 
     public function store(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'branch_id' => 'required|exists:branches,id', // Cambiado de company_id
-    ]);
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'branch_id' => 'required|exists:branches,id', // Cambiado de company_id
+        ]);
 
-    Area::create($validated);
-    
-    return redirect()->back()->with('message', 'Área creada con éxito');
-}
+        Area::create($validated);
+
+        return redirect()->back()->with('message', 'Área creada con éxito');
+    }
+    public function update(Request $request, Area $area)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'branch_id' => 'required|exists:branches,id',
+        ]);
+
+        $area->update($validated);
+
+        return back()->with('message', 'Área actualizada');
+    }
+
+    public function destroy(Area $area)
+    {
+        $area->delete();
+
+        return back()->with('message', 'Área eliminada');
+    }
 }
