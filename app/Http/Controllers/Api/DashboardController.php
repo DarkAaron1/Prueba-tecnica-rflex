@@ -12,42 +12,71 @@ use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    /**
-     * Obtener resumen general para el dashboard.
-     * GET /api/v1/admin/resumen
-     */
-    public function index()
+    public function index(Request $request)
     {
+        $user = $request->user();
         $today = Carbon::today();
+        
+        // 1. Base de las consultas
+        $shiftQuery = Shift::whereDate('scheduled_in', $today);
+        $markQuery = AttendanceMark::whereDate('timestamp', $today);
+        $employeeQuery = Employee::query();
 
+        // 2. Aplicar filtros según Rol
+        if ($user->role === 'manager') {
+            // El manager solo ve su área (asumiendo que el User tiene relación con Employee)
+            $managerEmployee = $user->employee; 
+            
+            if ($managerEmployee) {
+                $areaId = $managerEmployee->area_id;
+
+                $employeeQuery->where('area_id', $areaId);
+                
+                $shiftQuery->whereHas('employee', function($q) use ($areaId) {
+                    $q->where('area_id', $areaId);
+                });
+
+                $markQuery->whereIn('employee_rut', function($q) use ($areaId) {
+                    $q->select('rut')->from('employees')->where('area_id', $areaId);
+                });
+            }
+        } elseif ($user->role === 'employee') {
+            // Si un empleado entra al dashboard, lo limitamos a sus propios datos
+            $rut = $user->employee->rut ?? $user->rut;
+            $shiftQuery->whereHas('employee', fn($q) => $q->where('rut', $rut));
+            $markQuery->where('employee_rut', $rut);
+            $employeeQuery->where('rut', $rut);
+        }
+
+        // 3. Ejecutar cálculos de resumen (KPIs)
         $summary = [
-            'total_employees' => Employee::count(),
-            'shifts_today' => Shift::whereDate('scheduled_in', $today)->count(),
-            'present_today' => Shift::whereDate('scheduled_in', $today)->where('status', 'present')->count(),
-            'absent_today' => Shift::whereDate('scheduled_in', $today)->where('status', 'absent')->count(),
-            'late_today' => Shift::whereDate('scheduled_in', $today)->where('status', 'late')->count(),
-            'marks_today' => AttendanceMark::whereDate('timestamp', $today)->count(),
-            'active_devices' => \App\Models\Device::where('last_sync_at', '>', now()->subMinutes(5))->count(),
+            'total_employees' => $employeeQuery->count(),
+            'shifts_today'    => (clone $shiftQuery)->count(),
+            'present_today'   => (clone $shiftQuery)->where('status', 'present')->count(),
+            'absent_today'    => (clone $shiftQuery)->where('status', 'absent')->count(),
+            'late_today'      => (clone $shiftQuery)->where('status', 'late')->count(),
+            'marks_today'     => $markQuery->count(),
+            'active_devices'  => \App\Models\Device::where('last_sync_at', '>', now()->subMinutes(10))->count(),
         ];
 
-        $latestMarks = AttendanceMark::with('device') // Traemos el nombre del dispositivo
+        // 4. Obtener últimas marcas para la tabla
+        $latestMarks = $markQuery->with('device')
             ->orderBy('timestamp', 'desc')
-            ->take(10) // Solo las últimas 10
+            ->take(10)
             ->get()
-            ->map(function ($mark) {
-                return [
-                    'id' => $mark->id,
-                    'rut' => $mark->employee_rut,
-                    'tipo' => $mark->type === 'in' ? 'Entrada' : 'Salida',
-                    'hora' => Carbon::parse($mark->timestamp)->format('H:i:s'),
-                    'dispositivo' => $mark->device->name ?? 'N/A',
-                ];
-            });
+            ->map(fn($m) => [
+                'id' => $m->id,
+                'rut' => $m->employee_rut,
+                'tipo' => $m->type === 'in' ? 'Entrada' : 'Salida',
+                'hora' => Carbon::parse($m->timestamp)->format('H:i:s'),
+                'dispositivo' => $m->device->name ?? 'Desconocido',
+            ]);
 
         return Inertia::render('Dashboard', [
             'summary' => $summary,
-            'latestMarks' => $latestMarks, // <--- Nueva prop
-            'date' => $today->toDateString(),
+            'latestMarks' => $latestMarks,
+            'date' => $today->format('d-m-Y'),
+            'userRole' => $user->role
         ]);
     }
 }

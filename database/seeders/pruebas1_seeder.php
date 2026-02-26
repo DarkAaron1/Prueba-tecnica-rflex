@@ -79,6 +79,7 @@ class Pruebas1_seeder extends Seeder
         $user = User::create([
             'name' => $scenario['name'],
             'email' => strtolower(explode(' ', $scenario['name'])[0]) . '@test.com',
+            'role' => 'employee',
             'rut' => $scenario['rut'],
             'password' => Hash::make('password'),
         ]);
@@ -123,5 +124,30 @@ class Pruebas1_seeder extends Seeder
                 'metadata' => ['lat' => -33.4489, 'lng' => -70.6693]
             ]);
         }
+        // Crear Admin Global
+        User::create([
+            'name' => 'Admin Sistema',
+            'email' => 'admin@test.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+            'rut' => '99.999.999-9'
+        ]);
+
+        // Crear un Jefe de Área (Manager)
+        $managerUser = User::create([
+            'name' => 'Jefe de Desarrollo',
+            'email' => 'jefe@test.com',
+            'password' => Hash::make('password'),
+            'role' => 'manager',
+            'rut' => '88.888.888-8'
+        ]);
+
+        // El Jefe también debe ser empleado para estar en el organigrama
+        Employee::create([
+            'user_id' => $managerUser->id,
+            'area_id' => $scenario['area']->id,
+            'rut' => '888888888',
+            'phone' => '+56900000000',
+        ]);
     }
 }

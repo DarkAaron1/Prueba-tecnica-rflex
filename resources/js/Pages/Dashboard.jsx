@@ -1,178 +1,149 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { 
-    Users, 
-    Clock, 
-    AlertTriangle, 
-    Cpu, 
-    ArrowRightLeft, 
-    Calendar,
-    CheckCircle2,
-    XCircle
+    Users, Clock, AlertTriangle, Cpu, 
+    ArrowRightLeft, Calendar, CheckCircle2, 
+    XCircle, ShieldCheck, UserCircle 
 } from 'lucide-react';
 
-export default function Dashboard({ auth, summary, date, latestMarks }) {
+export default function Dashboard({ auth, summary, date, latestMarks, userRole }) {
+    
+    const canManage = ['admin', 'manager'].includes(userRole);
+
     return (
         <AuthenticatedLayout
             user={auth.user}
             header={
                 <div className="flex justify-between items-center">
-                    <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                        Panel de Asistencia
-                    </h2>
-                    <div className="flex items-center text-sm text-gray-500 bg-white px-3 py-1 rounded-full border shadow-sm">
+                    <div className="flex items-center space-x-3">
+                        <h2 className="font-semibold text-xl text-gray-800 leading-tight">Dashboard</h2>
+                        <RoleBadge role={userRole} />
+                    </div>
+                    <div className="flex items-center text-sm text-gray-500 bg-white px-4 py-1.5 rounded-full border shadow-sm font-medium">
                         <Calendar className="w-4 h-4 mr-2 text-indigo-500" />
                         {date}
                     </div>
                 </div>
             }
         >
-            <Head title="Dashboard de Asistencia" />
+            <Head title="Dashboard" />
 
-            <div className="py-12">
+            <div className="py-12 bg-gray-50/50 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     
-                    {/* --- GRILLA DE INDICADORES (KPIs) --- */}
+                    {/* GRILLA DE KPIs */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        
                         <StatCard 
-                            title="Total Empleados" 
+                            title={userRole === 'manager' ? "Mi Equipo" : "Total Empleados"}
                             value={summary.total_employees} 
-                            icon={<Users size={24} />} 
-                            color="bg-blue-500" 
+                            icon={<Users size={22} />} 
+                            color="bg-blue-600" 
                         />
-                        
                         <StatCard 
                             title="Presentes Hoy" 
                             value={summary.present_today} 
-                            icon={<CheckCircle2 size={24} />} 
-                            color="bg-green-500" 
-                            trend={`${summary.shifts_today} turnos hoy`}
+                            icon={<CheckCircle2 size={22} />} 
+                            color="bg-emerald-500" 
+                            trend={`${summary.shifts_today} programados`}
                         />
-
                         <StatCard 
-                            title="Ausentes" 
-                            value={summary.absent_today} 
-                            icon={<XCircle size={24} />} 
-                            color="bg-red-500" 
-                        />
-
-                        <StatCard 
-                            title="Atrasos Detectados" 
+                            title="Atrasos" 
                             value={summary.late_today} 
-                            icon={<AlertTriangle size={24} />} 
+                            icon={<AlertTriangle size={22} />} 
                             color="bg-amber-500" 
                         />
-
                         <StatCard 
-                            title="Marcas Totales" 
-                            value={summary.marks_today} 
-                            icon={<ArrowRightLeft size={24} />} 
-                            color="bg-purple-500" 
-                        />
-
-                        <StatCard 
-                            title="Relojes Online" 
+                            title="Relojes Activos" 
                             value={summary.active_devices} 
-                            icon={<Cpu size={24} />} 
+                            icon={<Cpu size={22} />} 
                             color="bg-indigo-600" 
                         />
                     </div>
 
-                    {/* --- TABLA DE ÚLTIMOS MOVIMIENTOS --- */}
+                    {/* TABLA DE ÚLTIMOS MOVIMIENTOS */}
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-xl border border-gray-200">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                             <div className="flex items-center space-x-2">
-                                <div className="p-2 bg-white rounded-lg shadow-sm border">
-                                    <Clock className="w-5 h-5 text-gray-600" />
-                                </div>
-                                <h3 className="text-lg font-bold text-gray-800">
-                                    Últimas Marcas Registradas
-                                </h3>
+                                <ArrowRightLeft className="w-5 h-5 text-gray-400" />
+                                <h3 className="text-lg font-bold text-gray-800">Últimos Registros</h3>
                             </div>
-                            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                Actualizado en tiempo real
-                            </span>
                         </div>
 
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
+                                <thead className="bg-gray-50/80">
                                     <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Empleado (RUT)</th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Tipo</th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Hora de Registro</th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Dispositivo</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Empleado</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Hora</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Dispositivo</th>
+                                        {canManage && <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>}
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-100">
                                     {latestMarks?.length > 0 ? (
                                         latestMarks.map((mark) => (
-                                            <tr key={mark.id} className="hover:bg-blue-50/30 transition-colors">
+                                            <tr key={mark.id} className="hover:bg-gray-50 transition-colors">
+                                                <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{mark.rut}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-bold text-gray-900">{mark.rut}</div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                                                        mark.tipo === 'Entrada' 
-                                                        ? 'bg-green-50 text-green-700 border-green-200' 
-                                                        : 'bg-blue-50 text-blue-700 border-blue-200'
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                                        mark.tipo === 'Entrada' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
                                                     }`}>
-                                                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${mark.tipo === 'Entrada' ? 'bg-green-500' : 'bg-blue-500'}`}></span>
                                                         {mark.tipo}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {mark.hora}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400 italic">
-                                                    {mark.dispositivo}
-                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{mark.hora}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400 italic">{mark.dispositivo}</td>
+                                                {canManage && (
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                                        <button className="text-indigo-600 hover:text-indigo-900 font-semibold underline-offset-4 hover:underline">
+                                                            Validar
+                                                        </button>
+                                                    </td>
+                                                )}
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="4" className="px-6 py-12 text-center text-gray-400">
-                                                No se han detectado marcas el día de hoy.
-                                            </td>
+                                            <td colSpan={5} className="px-6 py-12 text-center text-gray-400 italic">No hay marcas registradas.</td>
                                         </tr>
                                     )}
                                 </tbody>
                             </table>
                         </div>
-                        <div className="bg-gray-50 px-6 py-4 border-t border-gray-100">
-                            <button className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
-                                Ver todos los registros →
-                            </button>
-                        </div>
                     </div>
-
                 </div>
             </div>
         </AuthenticatedLayout>
     );
 }
 
-/**
- * Componente interno para las tarjetas de estadísticas
- */
+// Componentes Auxiliares
 function StatCard({ title, value, icon, color, trend }) {
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
-                    <h3 className="text-3xl font-bold text-gray-800">{value}</h3>
-                    {trend && (
-                        <p className="text-xs text-gray-400 mt-1 font-medium italic">
-                            {trend}
-                        </p>
-                    )}
-                </div>
-                <div className={`p-3 rounded-xl text-white shadow-lg ${color}`}>
-                    {icon}
-                </div>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+            <div>
+                <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">{title}</p>
+                <h3 className="text-3xl font-black text-gray-800 mt-1">{value}</h3>
+                {trend && <p className="text-xs text-gray-400 mt-1">{trend}</p>}
+            </div>
+            <div className={`p-4 rounded-2xl text-white shadow-lg shadow-${color.split('-')[1]}-200 ${color}`}>
+                {icon}
             </div>
         </div>
+    );
+}
+
+function RoleBadge({ role }) {
+    const config = {
+        admin: { color: 'bg-purple-100 text-purple-700 border-purple-200', icon: <ShieldCheck className="w-3.5 h-3.5 mr-1"/>, label: 'Admin' },
+        manager: { color: 'bg-blue-100 text-blue-700 border-blue-200', icon: <Users className="w-3.5 h-3.5 mr-1"/>, label: 'Jefe Área' },
+        employee: { color: 'bg-gray-100 text-gray-600 border-gray-200', icon: <UserCircle className="w-3.5 h-3.5 mr-1"/>, label: 'Personal' }
+    };
+    const { color, icon, label } = config[role] || config.employee;
+    return (
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold border ${color}`}>
+            {icon} {label}
+        </span>
     );
 }
