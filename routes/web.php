@@ -7,6 +7,7 @@ use App\Http\Controllers\HoldingController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BranchController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -34,7 +35,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::resource('holdings', HoldingController::class);
     Route::resource('companies', CompanyController::class);
     Route::resource('areas', AreaController::class); // Esta es la ruta para áreas
-    
+    Route::resource('branches', BranchController::class); // Rutas para sucursales
     // Gestor de Usuarios
     Route::resource('users', UserController::class);
 
