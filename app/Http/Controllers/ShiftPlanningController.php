@@ -14,16 +14,20 @@ class ShiftPlanningController extends Controller
     public function index(Request $request)
     {
         // Determinamos el inicio de la semana (Lunes)
-        $startOfWeek = $request->has('date') 
-            ? Carbon::parse($request->date)->startOfWeek() 
+        $startOfWeek = $request->has('date')
+            ? Carbon::parse($request->date)->startOfWeek()
             : Carbon::now()->startOfWeek();
-        
+
         $endOfWeek = (clone $startOfWeek)->endOfWeek();
 
         // Obtenemos empleados con sus turnos en ese rango
-        $employees = Employee::with(['user', 'area.branch.company', 'shifts' => function($query) use ($startOfWeek, $endOfWeek) {
-            $query->whereBetween('scheduled_in', [$startOfWeek, $endOfWeek]);
-        }])->get();
+        $employees = Employee::with([
+            'user',
+            'area.branch.company',
+            'shifts' => function ($query) use ($startOfWeek, $endOfWeek) {
+                $query->whereBetween('scheduled_in', [$startOfWeek, $endOfWeek]);
+            }
+        ])->get();
 
         return Inertia::render('Admin/Shift/planning', [
             'employees' => $employees,
@@ -53,57 +57,77 @@ class ShiftPlanningController extends Controller
         $request->validate([
             'employee_id' => 'required|exists:employees,id',
             'date' => 'required|date',
-            'in_time' => 'required', // HH:mm
-            'out_time' => 'required', // HH:mm
+            'in_time' => 'required',
+            'out_time' => 'required',
         ]);
 
         $scheduledIn = Carbon::parse($request->date . ' ' . $request->in_time);
         $scheduledOut = Carbon::parse($request->date . ' ' . $request->out_time);
 
-        // Si la salida es menor a la entrada, asumimos que es al día siguiente (turno noche)
-        if ($scheduledOut->lt($scheduledIn)) {
+        if ($scheduledOut->lt($scheduledIn))
             $scheduledOut->addDay();
-        }
 
-        Shift::updateOrCreate(
-            [
-                'employee_id' => $request->employee_id,
-                'scheduled_in' => $scheduledIn,
-            ],
-            [
-                'scheduled_out' => $scheduledOut,
-                'status' => 'pending'
-            ]
-        );
+        // Creamos un nuevo turno (permitiendo múltiples por día)
+        Shift::create([
+            'employee_id' => $request->employee_id,
+            'scheduled_in' => $scheduledIn,
+            'scheduled_out' => $scheduledOut,
+            'status' => 'pending'
+        ]);
 
-        return back()->with('message', 'Turno asignado correctamente');
+        return back()->with('message', 'Turno creado');
     }
 
+    public function update(Request $request, Shift $shift)
+    {
+        // Bloqueo: Si la hora actual es mayor a la hora programada de inicio
+        if (now()->gt($shift->scheduled_in)) {
+            return back()->withErrors(['error' => 'El turno ya ha iniciado o ha pasado; no se puede modificar.']);
+        }
+
+        $request->validate([
+            'in_time' => 'required',
+            'out_time' => 'required',
+        ]);
+
+        // ... lógica de guardado
+    }
+
+    public function destroy(Shift $shift)
+    {
+        // Bloqueo similar para eliminar
+        if (now()->gt($shift->scheduled_in)) {
+            return back()->withErrors(['error' => 'No puedes eliminar un turno que ya debería haber comenzado.']);
+        }
+
+        $shift->delete();
+        return back()->with('message', 'Turno eliminado');
+    }
     public function bulkStore(Request $request)
-{
-    $request->validate([
-        'employee_ids' => 'required|array',
-        'dates' => 'required|array',
-        'in_time' => 'required',
-        'out_time' => 'required',
-    ]);
+    {
+        $request->validate([
+            'employee_ids' => 'required|array',
+            'dates' => 'required|array',
+            'in_time' => 'required',
+            'out_time' => 'required',
+        ]);
 
-    foreach ($request->employee_ids as $empId) {
-        foreach ($request->dates as $date) {
-            $scheduledIn = Carbon::parse($date . ' ' . $request->in_time);
-            $scheduledOut = Carbon::parse($date . ' ' . $request->out_time);
+        foreach ($request->employee_ids as $empId) {
+            foreach ($request->dates as $date) {
+                $scheduledIn = Carbon::parse($date . ' ' . $request->in_time);
+                $scheduledOut = Carbon::parse($date . ' ' . $request->out_time);
 
-            if ($scheduledOut->lt($scheduledIn)) {
-                $scheduledOut->addDay();
+                if ($scheduledOut->lt($scheduledIn)) {
+                    $scheduledOut->addDay();
+                }
+
+                Shift::updateOrCreate(
+                    ['employee_id' => $empId, 'scheduled_in' => $scheduledIn],
+                    ['scheduled_out' => $scheduledOut, 'status' => 'pending']
+                );
             }
-
-            Shift::updateOrCreate(
-                ['employee_id' => $empId, 'scheduled_in' => $scheduledIn],
-                ['scheduled_out' => $scheduledOut, 'status' => 'pending']
-            );
         }
-    }
 
-    return back()->with('message', 'Planificación masiva completada');
-}
+        return back()->with('message', 'Planificación masiva completada');
+    }
 }

@@ -31,16 +31,23 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 // --- GRUPO DE ADMINISTRACIÓN (Gestores) ---
 // Protegido por autenticación y el middleware de rol admin que creamos
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-    
+
     // Gestores Estructurales
     Route::resource('holdings', HoldingController::class); // Rutas para holdings
     Route::resource('companies', CompanyController::class); // Rutas para compañías
     Route::resource('areas', AreaController::class); // Esta es la ruta para áreas
     Route::resource('branches', BranchController::class); // Rutas para sucursales
     Route::resource('users', UserController::class); // Rutas para usuarios
-    Route::get('/shifts/planning', [ShiftPlanningController::class, 'index'])->name('shifts.planning');
-    Route::post('/shifts/planning', [ShiftPlanningController::class, 'store'])->name('shifts.planning.store');
-
+    // Rutas de Planificación de Turnos
+    Route::get('/shifts/planning', [ShiftPlanningController::class, 'index'])
+        ->name('shifts.planning');
+    Route::post('/shifts/planning', [ShiftPlanningController::class, 'store'])
+        ->name('shifts.planning.store');
+    Route::put('/shifts/planning/{shift}', [ShiftPlanningController::class, 'update'])
+        ->name('shifts.planning.update');
+    Route::delete('/shifts/planning/{shift}', [ShiftPlanningController::class, 'destroy'])
+        ->name('shifts.planning.destroy');
+        
     // Rutas de Asistencia (Vistas Administrativas)
     Route::get('/marcas', [Asistencia::class, 'index'])->name('admin.marcas');
     Route::get('/turnos', [Asistencia::class, 'turnos'])->name('admin.turnos');
