@@ -1,59 +1,145 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Prueba Técnica para RFlex - Felipe Burgos - Postulación a Ingeniero Full-Stack Semi-Senior
 
-## About Laravel
+Consiste en una aplicación web de gestión de asistencia y planificación de turnos construida con Laravel y React (Inertia.js). Permite administrar empleados, sucursales, áreas, dispositivos y reportes de asistencia en una estructura multiempresa.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Características
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Gestión de Usuarios**: Control de usuarios y perfiles con roles
+- **Administración de Estructura Empresarial**: Holding, Empresa, Sucursal y Área
+- **Gestión de Dispositivos**: Registro y administración de dispositivos de marcaje
+- **Planificación de Turnos**: Creación y gestión de horarios de trabajo
+- **Control de Asistencia**: Registro automático de asistencia con trabajos en background
+- **Dashboard**: Panel de control con métricas de asistencia
+- **Reportes**: Generación de reportes de asistencia y ausencias con capacidad de exportar a Excel (Mediante descarga de archivo con librería "maatwebsite/excel")
+- **Autenticación**: Sistema seguro de autenticación con verificación de email
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Estructura del Proyecto
 
-## Learning Laravel
+```
+app/
+├── Exports/          # Exportadores de datos
+├── Http/
+│   ├── Controllers/  # Controladores principales y API
+│   ├── Middleware/   # Middleware personalizado
+│   └── Requests/     # Form Request validation
+├── Jobs/             # Trabajos en background
+├── Models/           # Modelos Eloquent
+└── Providers/        # Service Providers
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+resources/
+├── js/              # Componentes React y páginas Inertia
+│   ├── Components/  # Componentes reutilizables
+│   ├── Layouts/     # Layouts de aplicación
+│   └── Pages/       # Páginas principales
+├── css/             # Estilos
+└── views/           # Blade templates
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Requisitos
 
-## Laravel Sponsors
+- PHP 8.1+
+- Laravel 10+
+- Node.js y npm
+- MySQL o PostgreSQL
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Instalación
 
-### Premium Partners
+1. Clonar el repositorio
+2. Instalar dependencias PHP: `composer install`
+3. Instalar dependencias JavaScript: `npm install`
+4. Copiar archivo `.env.example` a `.env`
+5. Ejecutar migraciones: `php artisan migrate`
+6. Compilar assets: `npm run build`
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Contiene Seeder de prueba: 
+`php artisan db:seed --class=Pruebas1_seeder`
 
-## Contributing
+Este seeder crea datos de prueba incluyendo:
+- Una estructura empresarial completa (Holding, Empresa, Sucursal y Áreas)
+- 5 empleados con diferentes escenarios de asistencia
+- Dispositivos de marcaje biométrico
+- Turnos y registros de asistencia
+- Usuarios administrativos para pruebas
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Uso
 
-## Code of Conduct
+Iniciar servidor de desarrollo:
+```bash
+php artisan serve
+npm run dev
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Tecnologías
 
-## Security Vulnerabilities
+- **Backend**: Laravel 10, PHP 8.1
+- **Frontend**: React, Inertia.js
+- **Base de Datos**: MySQL
+- **Autenticación**: Laravel Sanctum
+- **Validación**: Form Requests
+- **Jobs**: Queue system
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## API de Asistencia
 
-## License
+### Endpoints Disponibles
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### Registrar Marcas de Asistencia
+```
+POST /api/v1/marcas
+```
+Recibe lotes de marcas desde relojes biométricos, aplicación móvil o API externa.
+
+**Body (JSON):**
+```json
+{
+    "device_serial": "DEVICE001",
+    "marks": [
+        {
+            "rut": "12345678-9",
+            "type": "in",
+            "timestamp": "2026-02-27T08:30:00"
+        },
+        {
+            "rut": "12345678-9",
+            "type": "out",
+            "timestamp": "2026-02-27T17:30:00"
+        }
+    ]
+}
+```
+
+#### Listar Marcas de Asistencia
+```
+GET /admin/marcas
+```
+Consulta marcas con filtros opcionales:
+- `employee_rut`: RUT del empleado
+- `date`: Fecha específica (YYYY-MM-DD)
+- `device_id`: ID del dispositivo
+
+#### Listar Turnos de Empleado
+```
+GET /admin/turnos
+```
+Parámetros requeridos:
+- `employee_id`: ID del empleado
+- `month`: Mes opcional (YYYY-MM)
+
+Retorna turnos con métricas: retrasos, horas extras, horas faltantes.
+
+#### Conciliar Turno Manualmente
+```
+POST /admin/conciliar/{shift_id}
+```
+Permite a administradores asociar marcas automáticamente a turnos dentro de un rango de ±30 minutos.
+
+### Procesos en Background
+
+- **ProcesoDeAsistencia**: Se ejecuta cada 5 minutos para procesar marcas pendientes
+- **ProcesoDeAusencia**: Se ejecuta diariamente a las 00:00 para generar registros de ausencias
+
+
+## Licencia
+
+Licencia MIT. Ver archivo LICENSE para más detalles.
+Licencia Standard GitHub Dev.
