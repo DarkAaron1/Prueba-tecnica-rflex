@@ -42,6 +42,18 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Sucursales
                                 </NavLink>
+                                <NavLink
+                                    href={route('companies.index')}
+                                    active={route().current('companies.*')}
+                                >
+                                    Compañías
+                                </NavLink>
+                                <NavLink
+                                    href={route('holdings.index')}
+                                    active={route().current('holdings.*')}
+                                >
+                                    Holdings
+                                </NavLink>
                             </div>
                         </div>
 
