@@ -189,4 +189,41 @@ class ShiftPlanningController extends Controller
             return back()->withErrors(['error' => 'Error al copiar: ' . $e->getMessage()]);
         }
     }
+    public function mySchedule(Request $request)
+{
+    $user = auth()->user();
+    
+    // Obtenemos la fecha de inicio de la semana (por defecto la actual)
+    $date = $request->input('date') ? Carbon::parse($request->input('date')) : Carbon::now();
+    $startOfWeek = $date->copy()->startOfWeek();
+    $endOfWeek = $date->copy()->endOfWeek();
+
+    // Buscamos al empleado vinculado al usuario
+    $employee = Employee::where('user_id', $user->id)
+        ->with(['shifts' => function($query) use ($startOfWeek, $endOfWeek) {
+            $query->whereBetween('scheduled_in', [$startOfWeek, $endOfWeek])
+                  ->orderBy('scheduled_in');
+        }])
+        ->firstOrFail();
+
+    // Preparamos los días de la semana para la cabecera
+    $days = [];
+    for ($i = 0; $i < 7; $i++) {
+        $current = $startOfWeek->copy()->addDays($i);
+        $days[] = [
+            'label' => $current->translatedFormat('D d'),
+            'full_date' => $current->toDateString(),
+            'is_today' => $current->isToday(),
+        ];
+    }
+
+    return inertia('Admin/Shift/mySchedule', [
+        'employee' => $employee,
+        'weekConfig' => [
+            'start' => $startOfWeek->toDateString(),
+            'end' => $endOfWeek->toDateString(),
+            'days' => $days
+        ]
+    ]);
+}
 }

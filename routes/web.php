@@ -49,7 +49,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
         ->name('shifts.planning.destroy');
     Route::post('/shifts/planning/copy', [ShiftPlanningController::class, 'copy'])
         ->name('shifts.planning.copy');
-        
+
     // Rutas de Asistencia (Vistas Administrativas)
     Route::get('/marcas', [Asistencia::class, 'index'])->name('admin.marcas');
     Route::get('/turnos', [Asistencia::class, 'turnos'])->name('admin.turnos');
@@ -58,6 +58,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
 // Rutas de Perfil (Breeze)
 Route::middleware('auth')->group(function () {
+    // Esta ruta es para que el usuario logueado vea sus propios turnos
+    Route::get('/my-schedule', [ShiftPlanningController::class, 'mySchedule'])
+        ->name('my.schedule');
+        
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
