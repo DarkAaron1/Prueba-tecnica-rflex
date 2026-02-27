@@ -47,6 +47,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
         ->name('shifts.planning.update');
     Route::delete('/shifts/planning/{shift}', [ShiftPlanningController::class, 'destroy'])
         ->name('shifts.planning.destroy');
+    Route::post('/shifts/planning/copy', [ShiftPlanningController::class, 'copy'])
+        ->name('shifts.planning.copy');
         
     // Rutas de Asistencia (Vistas Administrativas)
     Route::get('/marcas', [Asistencia::class, 'index'])->name('admin.marcas');
