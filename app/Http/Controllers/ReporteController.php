@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Shift;
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use App\Exports\UsersExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
@@ -54,12 +56,45 @@ class ReporteController extends Controller
 
     private function calculateWorkedHours($shift)
     {
-        if (!$shift->actualIn || !$shift->actualOut) return "00:00";
-        
+        if (!$shift->actualIn || !$shift->actualOut)
+            return "00:00";
+
         $in = Carbon::parse($shift->actualIn->timestamp);
         $out = Carbon::parse($shift->actualOut->timestamp);
         $totalMinutes = $in->diffInMinutes($out);
-        
+
         return sprintf('%02d:%02d', floor($totalMinutes / 60), $totalMinutes % 60);
+    }
+    public function export(Request $request)
+    {
+        // Aquí invocas la misma lógica que usas para obtener reportData en index
+        $reportData = $this->obtenerLogicaDeReporte($request);
+
+        return Excel::download(new UsersExport($reportData), 'reporte_remuneraciones.xlsx');
+    }
+
+    private function obtenerLogicaDeReporte(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
+        $areaId = $request->input('area_id');
+
+        $query = Shift::with(['employee.user', 'employee.area'])
+            ->whereBetween('scheduled_in', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+
+        if ($areaId) {
+            $query->whereHas('employee', fn($q) => $q->where('area_id', $areaId));
+        }
+
+        return $query->get()->map(function ($shift) {
+            return [
+                'empleado' => $shift->employee->user->name,
+                'rut' => $shift->employee->rut,
+                'estado' => $shift->status,
+                'horas_trabajadas' => $this->calculateWorkedHours($shift),
+                'atraso_minutos' => $shift->delay_minutes ?? 0,
+                'extra_minutos' => $shift->overtime_minutes ?? 0,
+            ];
+        });
     }
 }

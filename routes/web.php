@@ -65,7 +65,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-schedule', [ShiftPlanningController::class, 'mySchedule'])
         ->name('my.schedule');
 
-        Route::get('/reportes', [ReporteController::class, 'index'])->name('reports.index');
+    // Ruta específica para el Excel
+    Route::get('/reports/export', [ReporteController::class, 'export'])->name('reports.export');
+    Route::get('/reportes', [ReporteController::class, 'index'])->name('reports.index');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
