@@ -50,6 +50,9 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <NavLink href={route('shifts.planning')} active={route().current('shifts.*')}>
                                             Planificación de Turnos
                                         </NavLink>
+                                        <NavLink href={route('devices.index')} active={route().current('devices.*')}>
+                                            Dispositivos
+                                        </NavLink>
                                     </>
                                 )}
 
@@ -111,6 +114,10 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <ResponsiveNavLink href={route('areas.index')} active={route().current('areas.*')}>Áreas</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('users.index')} active={route().current('users.*')}>Personal</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('shifts.planning')} active={route().current('shifts.*')}>Planificación</ResponsiveNavLink>
+                                <ResponsiveNavLink href={route('branches.index')} active={route().current('branches.*')}>Sucursales</ResponsiveNavLink>
+                                <ResponsiveNavLink href={route('companies.index')} active={route().current('companies.*')}>Compañías</ResponsiveNavLink>
+                                <ResponsiveNavLink href={route('holdings.index')} active={route().current('holdings.*')}>Holdings</ResponsiveNavLink>
+                                <ResponsiveNavLink href={route('devices.index')} active={route().current('devices.*')}>Dispositivos</ResponsiveNavLink>
                             </>
                         ) : (
                             <ResponsiveNavLink href={route('my.schedule')} active={route().current('my.schedule')}>

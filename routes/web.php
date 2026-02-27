@@ -8,6 +8,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\ShiftPlanningController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +39,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::resource('areas', AreaController::class); // Esta es la ruta para áreas
     Route::resource('branches', BranchController::class); // Rutas para sucursales
     Route::resource('users', UserController::class); // Rutas para usuarios
+    Route::resource('devices', DeviceController::class); // Rutas para dispositivos
     // Rutas de Planificación de Turnos
     Route::get('/shifts/planning', [ShiftPlanningController::class, 'index'])
         ->name('shifts.planning');
@@ -61,7 +63,7 @@ Route::middleware('auth')->group(function () {
     // Esta ruta es para que el usuario logueado vea sus propios turnos
     Route::get('/my-schedule', [ShiftPlanningController::class, 'mySchedule'])
         ->name('my.schedule');
-        
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
