@@ -19,9 +19,9 @@ class Pruebas1_seeder extends Seeder
 {
     public function run(): void
     {
-        $baseDate = Carbon::today(); // Configurable
+        $baseDate = Carbon::today();
 
-        // 1. Estructura Organizacional Expandida
+        // 1. Estructura Organizacional
         $holding = Holding::create(['name' => 'Corporación Global Chile']);
 
         $company = Company::create([
@@ -58,7 +58,7 @@ class Pruebas1_seeder extends Seeder
             ]),
         ];
 
-        // 2. Escenarios de Empleados Expandidos
+        // 2. Escenarios de Empleados
         $scenarios = [
             ['name' => 'Juan Pérez', 'rut' => '11.111.111-1', 'area' => $areas[0], 'scheduled_in' => '08:00', 'actual_in' => '08:05', 'actual_out' => '17:00', 'status' => 'present', 'phone' => '+56912345678'],
             ['name' => 'María García', 'rut' => '22.222.222-2', 'area' => $areas[0], 'scheduled_in' => '08:00', 'actual_in' => '08:45', 'actual_out' => '17:30', 'status' => 'late', 'phone' => '+56987654321'],
@@ -68,10 +68,11 @@ class Pruebas1_seeder extends Seeder
         ];
 
         foreach ($scenarios as $scenario) {
-            $this->createEmployeeScenario($scenario, $baseDate, $devices);
+            // Pasamos $branch para cumplir con la nueva migración
+            $this->createEmployeeScenario($scenario, $baseDate, $devices, $branch);
         }
 
-        // Crear Admin Global (una sola vez, fuera del loop)
+        // 3. Usuarios Administrativos
         User::create([
             'name' => 'Admin Sistema',
             'email' => 'admin@test.com',
@@ -80,7 +81,6 @@ class Pruebas1_seeder extends Seeder
             'rut' => '99.999.999-9'
         ]);
 
-        // Crear un Jefe de Área (Manager) - una sola vez
         $managerUser = User::create([
             'name' => 'Jefe de Desarrollo',
             'email' => 'jefe@test.com',
@@ -89,18 +89,18 @@ class Pruebas1_seeder extends Seeder
             'rut' => '88.888.888-8'
         ]);
 
-        // El Jefe también debe ser empleado para estar en el organigrama
         Employee::create([
             'user_id' => $managerUser->id,
+            'branch_id' => $branch->id, // Nueva columna
             'area_id' => $areas[0]->id,
             'rut' => '888888888',
             'phone' => '+56900000000',
         ]);
 
-        $this->command->info('Seeder completado: ' . count($scenarios) . ' empleados creados.');
+        $this->command->info('Seeder completado con sucursales y áreas.');
     }
 
-    private function createEmployeeScenario($scenario, $baseDate, $devices)
+    private function createEmployeeScenario($scenario, $baseDate, $devices, $branch)
     {
         $user = User::create([
             'name' => $scenario['name'],
@@ -112,13 +112,15 @@ class Pruebas1_seeder extends Seeder
 
         $employee = Employee::create([
             'user_id' => $user->id,
+            'branch_id' => $branch->id, // Asignamos la sucursal aquí
             'area_id' => $scenario['area']->id,
             'rut' => str_replace(['.', '-'], '', $scenario['rut']),
             'phone' => $scenario['phone'],
         ]);
 
+        // Crear Turno
         $scheduledIn = $baseDate->copy()->setTimeFromTimeString($scenario['scheduled_in']);
-        $scheduledOut = $baseDate->copy()->setHour(17)->setMinute(0);
+        $scheduledOut = $scheduledIn->copy()->addHours(9);
 
         $shift = Shift::create([
             'employee_id' => $employee->id,
@@ -127,8 +129,9 @@ class Pruebas1_seeder extends Seeder
             'status' => $scenario['status']
         ]);
 
-        $device = $devices[array_rand($devices)]; // Asignar device aleatorio
+        $device = $devices[array_rand($devices)];
 
+        // Crear Marcas de Asistencia
         if ($scenario['actual_in']) {
             AttendanceMark::create([
                 'employee_rut' => $employee->rut,
@@ -136,7 +139,6 @@ class Pruebas1_seeder extends Seeder
                 'type' => 'in',
                 'timestamp' => $baseDate->copy()->setTimeFromTimeString($scenario['actual_in']),
                 'source' => 'clock',
-                'metadata' => ['lat' => -33.4489, 'lng' => -70.6693] // Ejemplo GPS
             ]);
         }
 
@@ -147,7 +149,6 @@ class Pruebas1_seeder extends Seeder
                 'type' => 'out',
                 'timestamp' => $baseDate->copy()->setTimeFromTimeString($scenario['actual_out']),
                 'source' => 'clock',
-                'metadata' => ['lat' => -33.4489, 'lng' => -70.6693]
             ]);
         }
     }

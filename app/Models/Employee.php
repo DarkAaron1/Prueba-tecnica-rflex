@@ -20,7 +20,7 @@ class Employee extends Model
     protected function rut(): Attribute
     {
         return Attribute::make(
-            set: fn (string $value) => preg_replace('/[^0-9kK]/', '', $value),
+            set: fn(string $value) => preg_replace('/[^0-9kK]/', '', $value),
         );
     }
 
@@ -38,11 +38,11 @@ class Employee extends Model
     {
         return $this->hasMany(Shift::class);
     }
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
-    /**
-     * Obtener las marcas asociadas al trabajador a través de su RUT.
-     * Importante para el sistema de marcas externo.
-     */
     public function attendanceMarks()
     {
         return $this->hasMany(AttendanceMark::class, 'employee_rut', 'rut');
