@@ -8,6 +8,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\ShiftPlanningController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -32,12 +33,13 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     // Gestores Estructurales
-    Route::resource('holdings', HoldingController::class);
-    Route::resource('companies', CompanyController::class);
+    Route::resource('holdings', HoldingController::class); // Rutas para holdings
+    Route::resource('companies', CompanyController::class); // Rutas para compañías
     Route::resource('areas', AreaController::class); // Esta es la ruta para áreas
     Route::resource('branches', BranchController::class); // Rutas para sucursales
-    // Gestor de Usuarios
-    Route::resource('users', UserController::class);
+    Route::resource('users', UserController::class); // Rutas para usuarios
+    Route::get('/shifts/planning', [ShiftPlanningController::class, 'index'])->name('shifts.planning');
+    Route::post('/shifts/planning', [ShiftPlanningController::class, 'store'])->name('shifts.planning.store');
 
     // Rutas de Asistencia (Vistas Administrativas)
     Route::get('/marcas', [Asistencia::class, 'index'])->name('admin.marcas');

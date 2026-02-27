@@ -60,6 +60,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Personal
                                 </NavLink>
+                                <NavLink
+                                    href={route('shifts.planning')}
+                                    active={route().current('shifts.*')}
+                                >
+                                    Planificación de Turnos
+                                </NavLink>
                             </div>
                         </div>
 
