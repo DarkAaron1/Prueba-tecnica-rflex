@@ -9,6 +9,7 @@ use App\Http\Controllers\AreaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DeviceController;
+use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\ShiftPlanningController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -63,6 +64,8 @@ Route::middleware('auth')->group(function () {
     // Esta ruta es para que el usuario logueado vea sus propios turnos
     Route::get('/my-schedule', [ShiftPlanningController::class, 'mySchedule'])
         ->name('my.schedule');
+
+        Route::get('/reportes', [ReporteController::class, 'index'])->name('reports.index');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
