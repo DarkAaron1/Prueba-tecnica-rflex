@@ -3,10 +3,10 @@ import { Head } from '@inertiajs/react';
 import {
     Users, Clock, AlertTriangle, Cpu,
     ArrowRightLeft, Calendar, CheckCircle2,
-    XCircle, ShieldCheck, UserCircle
+    XCircle, ShieldCheck, UserCircle, Briefcase, LogIn, LogOut, Info
 } from 'lucide-react';
 
-export default function Dashboard({ auth, summary, date, latestMarks, userRole }) {
+export default function Dashboard({ auth, summary, date, latestMarks, userRole, todayShift }) {
 
     const canManage = ['admin', 'manager'].includes(userRole);
 
@@ -31,39 +31,95 @@ export default function Dashboard({ auth, summary, date, latestMarks, userRole }
             <div className="py-12 bg-gray-50/50 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                    {/* GRILLA DE KPIs */}
+                    {/* GRILLA DE KPIs DINÁMICA */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        {userRole != "employee" ? (
+
+                        {/* Card 1: Mi Equipo / Mi Estado (Ya lo teníamos) */}
+                        {userRole !== 'employee' ? (
                             <StatCard
-                                title={userRole === 'manager' ? "Mi Equipo" : "Total Empleados"}
+                                title="Total Empleados"
                                 value={summary.total_employees}
                                 icon={<Users size={22} />}
                                 color="bg-blue-600"
                             />
-                        ) : null}
+                        ) : (
+                            <StatCard
+                                title="Mi Estado Hoy"
+                                value={todayShift ? todayShift.status : 'Libre'}
+                                icon={<UserCircle size={22} />}
+                                color="bg-indigo-600"
+                            />
+                        )}
+
+                        {/* Card 2: Marcas del día */}
                         <StatCard
-                            title="Presentes Hoy"
-                            value={summary.present_today}
+                            title={userRole === 'employee' ? "Marcas Hoy" : "Presentes Hoy"}
+                            value={userRole === 'employee' ? summary.marks_today : summary.present_today}
                             icon={<CheckCircle2 size={22} />}
                             color="bg-emerald-500"
-                            trend={`${summary.shifts_today} programados`}
                         />
+
+                        {/* Card 3: Atrasos (Siempre importante) */}
                         <StatCard
-                            title="Atrasos"
+                            title={userRole === 'employee' ? "Mis Atrasos" : "Atrasos Totales"}
                             value={summary.late_today}
                             icon={<AlertTriangle size={22} />}
                             color="bg-amber-500"
                         />
-                        {userRole !== 'employee' ? (
+
+                        {/* Card 4: INDICADOR DE HORAS TRABAJADAS (Nueva lógica) */}
+                        {userRole === 'employee' ? (
+                            <StatCard
+                                title="Horas del Mes"
+                                value={summary.monthly_hours}
+                                icon={<Briefcase size={22} />}
+                                color="bg-slate-800"
+                                trend="Acumulado mensual"
+                            />
+                        ) : (
                             <StatCard
                                 title="Relojes Activos"
                                 value={summary.active_devices}
                                 icon={<Cpu size={22} />}
-                                color="bg-indigo-600"
+                                color="bg-slate-800"
                             />
-                        ) : null}
+                        )}
                     </div>
 
+                    {/* SECCIÓN EXCLUSIVA PARA EMPLEADO: MI TURNO DE HOY */}
+                    {userRole === 'employee' && (
+                        <div className="mb-8 bg-white p-1 rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
+                            <div className="bg-indigo-600 p-6 rounded-[1.4rem] text-white flex flex-col md:flex-row justify-between items-center gap-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm">
+                                        <Clock className="text-white" size={32} />
+                                    </div>
+                                    <div>
+                                        <p className="text-indigo-100 text-xs font-black uppercase tracking-widest">Mi Turno de Hoy</p>
+                                        <h3 className="text-2xl font-black">
+                                            {todayShift ? `${todayShift.scheduled_in_time} - ${todayShift.scheduled_out_time}` : 'Sin turno programado'}
+                                        </h3>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4 w-full md:w-auto">
+                                    <div className="flex-1 bg-white/10 p-4 rounded-2xl border border-white/10">
+                                        <p className="text-[10px] font-bold uppercase opacity-60">Entrada Real</p>
+                                        <p className="font-black text-lg">{todayShift?.actual_in?.timestamp ? todayShift.actual_in.timestamp : '--:--'}</p>
+                                    </div>
+                                    <div className="flex-1 bg-white/10 p-4 rounded-2xl border border-white/10">
+                                        <p className="text-[10px] font-bold uppercase opacity-60">Salida Real</p>
+                                        <p className="font-black text-lg">{todayShift?.actual_out?.timestamp ? todayShift.actual_out.timestamp : '--:--'}</p>
+                                    </div>
+                                </div>
+
+                                <div className={`px-6 py-2 rounded-full font-black uppercase text-xs border-2 ${todayShift?.status === 'present' ? 'bg-emerald-400/20 border-emerald-400 text-emerald-100' : 'bg-amber-400/20 border-amber-400 text-amber-100'
+                                    }`}>
+                                    {todayShift?.status || 'Pendiente'}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {/* TABLA DE ÚLTIMOS MOVIMIENTOS */}
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-xl border border-gray-200">
                         <div className="p-6 border-b border-gray-100 flex items-center justify-between">
